@@ -1,5 +1,5 @@
 #from opentrons import instruments, containers
-from opentrons import protocol_api
+from opentrons import protocol_api, types
 
 
 # def make_ordered_list():
@@ -65,7 +65,7 @@ def run(ctx: protocol_api.ProtocolContext):
 			tip_count += 1
 
 			# Aspirate from falcon
-			pip.aspirate(200, container["A3"])
+			pip.aspirate(200, container["A3"].top().move(types.Point(0,0,-25)))
 
 			# Add to plate then mix
 			pip.mix(mix_number, mix_volume, plate[row+col_str])
