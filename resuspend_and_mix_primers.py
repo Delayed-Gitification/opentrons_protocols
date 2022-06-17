@@ -21,9 +21,13 @@ def run(ctx: protocol_api.ProtocolContext):
 	# Load in everything
 	tipracks = [ctx.load_labware('opentrons_96_tiprack_300ul', '5')]
 	container = ctx.load_labware("opentrons_10_tuberack_falcon_4x50ml_6x15ml_conical", "3")
-	plate = ctx.load_labware("thermoscientificnunc_96_wellplate_2000ul", "1")
+	plate = ctx.load_labware("thermoscientificnunc_96_wellplate_2000ul", "4")
+	output = ctx.load_labware("thermoscientificnunc_96_wellplate_2000ul", "7")
 
 	pip = ctx.load_instrument('p300_multi_gen2', 'right')
+
+	pip.flow_rate.aspirate = 200
+	pip.flow_rate.dispense = 200
 
 	num_channels_per_pickup = 1
 	# (only pickup tips on front-most channel)
@@ -54,8 +58,8 @@ def run(ctx: protocol_api.ProtocolContext):
 				tips_ordered.append(tip)
 
 	tip_count = 0
-	mix_number = 50
-	mix_volume = 100
+	mix_number = 10
+	mix_volume = 180
 	for row in ["A", "B"]:
 		for col in range(11):
 			col_str = str(col+1)
@@ -65,14 +69,15 @@ def run(ctx: protocol_api.ProtocolContext):
 			tip_count += 1
 
 			# Aspirate from falcon
-			pip.aspirate(200, container["A3"].top().move(types.Point(0,0,-25)))
+			pip.aspirate(200, container["A3"].top().move(types.Point(0,0,-45)))
 
 			# Add to plate then mix
-			pip.mix(mix_number, mix_volume, plate[row+col_str])
+			pip.dispense(200, plate[row+col_str].bottom().move(types.Point(0,0,5)))
+			pip.mix(mix_number, mix_volume, plate[row+col_str].bottom().move(types.Point(0,0,5)))
 
 			# Transfer to row F
-			pip.aspirate(20, plate[row+col_str])
-			pip.dispense(200, plate["F" + col_str])
+			pip.aspirate(20, plate[row+col_str].bottom().move(types.Point(0,0,5)))
+			pip.dispense(200, output["H" + col_str].bottom().move(types.Point(0,0,5)))
 
 			# Get rid of tip
 			pip.drop_tip()
